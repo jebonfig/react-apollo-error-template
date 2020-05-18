@@ -40,7 +40,7 @@ export default function App() {
   const {
     loading: peopleLoading,
     data: peopleData
-  } = useQuery(ALL_PEOPLE, { fetchPolicy: 'cache-and-network' });  // switch to cache-first to see the desired behavior
+  } = useQuery(ALL_PEOPLE, { fetchPolicy: 'cache-and-network' });  // to see the desired behavior: switch to cache-first, or, revert back to 3.0.0-beta.45.
 
   const [renameSara, { loading: renameLoading }] = useMutation(RENAME_PERSON, { variables: { id: 2, name: 'Sarah with an H Smith' } } )
 
