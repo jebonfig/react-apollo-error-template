@@ -8,7 +8,17 @@ import App from "./App";
 import "./index.css";
 
 const client = new ApolloClient({
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          person(existingData, { args, toReference }) {
+            return existingData || toReference({ __typename: 'Person', id: args.id });
+          },
+        }
+      }
+    },
+  }),
   link
 });
 

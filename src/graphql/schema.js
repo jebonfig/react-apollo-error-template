@@ -4,6 +4,7 @@ import {
   GraphQLID,
   GraphQLString,
   GraphQLList,
+  GraphQLInt
 } from 'graphql';
 
 const PersonType = new GraphQLObjectType({
@@ -14,7 +15,7 @@ const PersonType = new GraphQLObjectType({
   },
 });
 
-const peopleData = [
+let peopleData = [
   { id: 1, name: 'John Smith' },
   { id: 2, name: 'Sara Smith' },
   { id: 3, name: 'Budd Deey' },
@@ -27,7 +28,30 @@ const QueryType = new GraphQLObjectType({
       type: new GraphQLList(PersonType),
       resolve: () => peopleData,
     },
+    person: {
+      type: PersonType,
+      args: {
+        id: { type: GraphQLInt }
+      }
+    },
   },
 });
 
-export const schema = new GraphQLSchema({ query: QueryType });
+const MutationType = new GraphQLObjectType({
+  name: 'Mutation',
+  fields: () => ({
+    renamePerson: {
+      type: PersonType,
+      args: {
+        id: { type: GraphQLInt },
+        name: { type: GraphQLString },
+      },
+      resolve: (value, { id, name }) => {
+        peopleData[id - 1].name = name
+        return peopleData[id - 1]
+      }
+    }
+  }),
+});
+
+export const schema = new GraphQLSchema({ query: QueryType, mutation: MutationType });

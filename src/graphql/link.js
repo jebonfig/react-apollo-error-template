@@ -13,7 +13,7 @@ function delay(ms) {
 export const link = new ApolloLink(operation => {
   return new Observable(observer => {
     const { query, operationName, variables } = operation;
-    delay(300)
+    delay(1500)
       .then(() =>
         graphql(schema, print(query), null, null, variables, operationName)
       )
