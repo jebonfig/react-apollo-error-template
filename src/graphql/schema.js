@@ -3,7 +3,6 @@ import {
   GraphQLObjectType,
   GraphQLID,
   GraphQLString,
-  GraphQLList,
   GraphQLInt
 } from 'graphql';
 
@@ -24,15 +23,12 @@ let peopleData = [
 const QueryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
-    people: {
-      type: new GraphQLList(PersonType),
-      resolve: () => peopleData,
-    },
     person: {
       type: PersonType,
       args: {
         id: { type: GraphQLInt }
-      }
+      },
+      resolve: (value, { id }) => peopleData.find(p => p.id === id)
     },
   },
 });
@@ -47,7 +43,7 @@ const MutationType = new GraphQLObjectType({
         name: { type: GraphQLString },
       },
       resolve: (value, { id, name }) => {
-        peopleData[id - 1].name = name
+        peopleData[id - 1].name += name
         return peopleData[id - 1]
       }
     }

@@ -1,14 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
-
-const ALL_PEOPLE = gql`
-  query AllPeople {
-    people {
-      id
-      name
-    }
-  }
-`;
 
 const PERSON = gql`
   query SinglePerson($id: Int!) {
@@ -29,66 +20,52 @@ const RENAME_PERSON = gql`
 `;
 
 export default function App() {
+
+  const [queryForId, setQueryForId] = useState(2)
+
   const {
     loading: personLoading,
     data: personData
   } = useQuery(PERSON, { 
-    variables: { id: 2 }, 
-    fetchPolicy: 'cache-only' 
+    variables: { id: queryForId }, 
+    fetchPolicy: 'cache-and-network',
+    // nextFetchPolicy: 'cache-only'
   });
 
-  const {
-    loading: peopleLoading,
-    data: peopleData
-  } = useQuery(ALL_PEOPLE, { fetchPolicy: 'cache-and-network' });  // to see the desired behavior: switch to cache-first, or, revert back to 3.0.0-beta.45.
-
-  const [renameSara, { loading: renameLoading }] = useMutation(RENAME_PERSON, { variables: { id: 2, name: 'Sarah with an H Smith' } } )
+  const [renameSara, { loading: renameLoading }] = useMutation(RENAME_PERSON, { variables: { id: queryForId, name: 'Jackson' } } )
 
   return (
     <main>
       <h1>Apollo Client Issue Reproduction</h1>
-      <p>
-        This is a typical apollo setup. <br />
-        There's a <b>cache-and-network</b> people query.<br />
-        There's a <b>cache-only</b> person query which has a <b>typePolicy</b> configured to read the person from the cache of people rather than query individually for it.<br />
-        And theres a mutation to rename a person.<br /><br/>
 
-        Listed issues below:
-      </p>
-      <ul>
-        <li>
-          1 (main issue). After the rename mutation completes, I would expect the All People query to simply re-render from the cache with the updated name. 
-          However, it ends up requerying the network. Switch the ALL_PEOPLE query to cache-first to see the desired behavior<br />
-        </li>
-        <li>2. Why is there a "Missing cache result fields: person" warning in the console? I've specified a cache-only fetch policy on the query, and a type policy to pull it from the list, 
-          so my item not being in the cache is a perfectly valid scenario. I'd argue a warning here is unnecessary noise.
-        </li>
-      </ul>
+      <p>Changing the query variables UNSETS the `nextFetchPolicy` on this query that was set via `defaultOptions` on the apollo client:</p>
 
+      <p>- Running the mutation without changing the query variables wont make a network call after mutation updates the cache</p>
+      <p>- Running the mutation after changing the query variables will make a network call after mutation updates the cache</p>
 
-      <h2>Names (People Query)</h2>
-      {peopleLoading ? (
-        <p>Loading…</p>
-      ) : (
-        <ul>
-          {peopleData.people.map(person => (
-            <li key={person.id}>{person.name}</li>
-          ))}
-        </ul>
-      )}
+      <p>- I would expect the defaultOptions to stick rather than being unset because the query variables have changed</p>
 
-      <h2>PERSON (Person Query)</h2>
-      {personLoading && <p>personLoading</p>}
-      {personData && 
-        <>
+      <h2>PERSON (Person Query using "cache-and-network")</h2>
+
+      {personLoading && <p>MAKING NETWORK CALL...</p>}
+
           <ul>
-              <li key={personData.person.id}>{personData.person.name}</li>
+              <li>{personData && personData.person.name}</li>
           </ul>
 
-          <h2>RENAME PERSON (Rename person mutation)</h2>
-          {renameLoading ? <span>RENAMING...</span> : <button onClick={renameSara}>RENAME Sara Smith to "Sarah with an H Smith"</button>}
-        </>
-      }
+          <h2>Change query variables</h2>
+          <button onClick={() => { setQueryForId(i => i === 2 ? 1 : 2) } }>Change query variables</button>
+
+          <br />
+          <br />
+
+          <h2>Rename mutation</h2>
+          {renameLoading ? <span>RENAMING...</span> : <button onClick={renameSara}>append "Jackson" to end of name</button>}
+
+          
+
+          
+
     </main>
   );
 }
