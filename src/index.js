@@ -21,9 +21,14 @@ const client = new ApolloClient({
   }),
   link,
   defaultOptions: {
-      watchQuery: {
-          nextFetchPolicy: 'cache-only' 
+    watchQuery: {
+      nextFetchPolicy(lastFetchPolicy) {
+          if (lastFetchPolicy === "cache-and-network") {
+              return "cache-only";
+          }
+          return lastFetchPolicy;
       }
+  }
   }
 });
 
